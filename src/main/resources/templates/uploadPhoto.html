@@ -1,0 +1,15 @@
+<html>
+<body>
+<h1>Upload new Photo</h1>
+<form method="POST" action="/recipes/recipe/add" enctype="multipart/form-data">
+    Title:<input type="text" name="title" /><br>
+    Ingredients:<textarea name="ingredients"></textarea>
+    <!--Ingredients:<input type="text" name="ingredients" /><br>
+    <input style="display: none" type="text" name="ingredients" />-->
+    Instructions:<input type="text" name="instructions" /><br>
+    <input style="display: none" type="text" name="instructions" />
+    Image:<input type="file" name="image" accept="image/*" /><br>
+    <input type="submit" value="Upload" />
+</form>
+</body>
+</html>

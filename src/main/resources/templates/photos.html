@@ -1,0 +1,13 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+<h1>View Photo</h1>
+Title: <span th:text="${title}"></span><br>
+Ingredients:
+<span th:each="ingredient : ${ingredients}">
+    <span th:text="${ingredient} "></span>
+</span><br>
+Instructions: <span th:text="${instructions}"></span><br>
+<img alt="sample" th:src="*{'data:image/png;base64,'+image}" />
+</body>
+</html>
