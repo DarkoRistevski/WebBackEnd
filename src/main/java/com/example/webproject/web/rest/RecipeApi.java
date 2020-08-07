@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/recipes")
@@ -109,11 +110,17 @@ public class RecipeApi {
         RecipeData recipe = mapper.readValue(recipeData, RecipeData.class);
 
         String title = recipe.getTitle();
-        String ingredients = recipe.getIngredients().trim();
+        String ingredients = recipe.getIngredients();
         String instructions = recipe.getInstructions();
 
-        List<String> finalIngredients = Arrays.asList(ingredients.split(","));
-        List<String> finalInstructions = Arrays.asList(instructions);
+        List<String> semiFinalIngredients = Arrays.asList(ingredients.split(";"));
+        semiFinalIngredients = semiFinalIngredients.stream().map(i -> i.trim()).collect(Collectors.toList());
+
+        List<String> semiFinalInstructions = Arrays.asList(instructions.split(";"));
+        semiFinalInstructions = semiFinalInstructions.stream().map(i -> i.trim()).collect(Collectors.toList());
+
+        List<String> finalIngredients = semiFinalIngredients.stream().filter(i -> !i.equals("")).collect(Collectors.toList());
+        List<String> finalInstructions = semiFinalInstructions.stream().filter(i -> !i.equals("")).collect(Collectors.toList());
 
         return recipeService.addRecipe(title, finalIngredients, finalInstructions, image);
 
