@@ -48,11 +48,12 @@ public class RecipeService {
         return recipeRepository.findByTitle(title, ing,  page, size);
     }
 
-    public Recipe updateRecipe(String recipeId, String title, List<String> ingredients, List<String> instructions){
+    public Recipe updateRecipe(String recipeId, String title, List<String> ingredients, List<String> instructions, Binary file) throws IOException {
         Recipe recipe = recipeRepository.findById(recipeId).orElseThrow(InvalidRecipeException::new);
         recipe.setTitle(title);
         recipe.setInstructions(instructions);
         recipe.setIngredients(ingredients);
+        recipe.setImage(file);
         return recipeRepository.save(recipe);
     }
 

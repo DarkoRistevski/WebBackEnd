@@ -5,14 +5,19 @@ import com.example.webproject.models.Recipe;
 import com.example.webproject.models.exceptions.InvalidRecipeException;
 import com.example.webproject.models.security.AuthenticationRequest;
 import com.example.webproject.models.security.AuthenticationResponse;
+import com.example.webproject.models.util.EditedRecipe;
 import com.example.webproject.models.util.RecipeData;
 import com.example.webproject.models.vm.Page;
 import com.example.webproject.service.RecipeService;
 import com.example.webproject.service.security.MyUserDetailsService;
 import com.example.webproject.util.JwtUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bson.BsonBinarySubType;
+import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -103,7 +108,7 @@ public class RecipeApi {
     }
 
     @PostMapping("/add")
-    public Recipe addPhoto(@RequestParam("recipeData") String recipeData,
+    public Recipe addRecipe(@RequestParam("recipeData") String recipeData,
                          @RequestParam("image") MultipartFile image) throws IOException {
 
         ObjectMapper mapper = new ObjectMapper();
@@ -127,19 +132,35 @@ public class RecipeApi {
     }
 
     @PatchMapping("/update")
-    public Recipe updateRecipe(@RequestParam("id") String id,
-                               @RequestParam("title") String title,
-                               @RequestParam("ingredients") String ingredients,
-                               @RequestParam("instructions") String instructions){
+    public Recipe updateRecipe(@RequestParam("recipeData") String recipeData,
+                               @Nullable @RequestParam("image") MultipartFile image) throws IOException {
 
-        ingredients = ingredients.trim();
-        instructions = instructions.trim();
+        ObjectMapper mapper = new ObjectMapper();
+        EditedRecipe recipe = mapper.readValue(recipeData, EditedRecipe.class);
 
-        List<String> finalIngredients = Arrays.asList(ingredients.split(";"));
-        List<String> finalInstructions = Arrays.asList(instructions.split("\\."));
-        finalInstructions.stream().forEach(s -> s.trim());
+        Binary finalImage = null;
+        String id = recipe.getId();
+        String title = recipe.getTitle();
+        String ingredients = recipe.getIngredients();
+        String instructions = recipe.getInstructions();
 
-        return recipeService.updateRecipe(id, title, finalIngredients, finalInstructions);
+        if(image == null){
+            Recipe r = recipeService.getRecipe(id).orElseThrow(InvalidRecipeException::new);
+            finalImage = r.getImage();
+        } else {
+            finalImage = new Binary(BsonBinarySubType.BINARY, image.getBytes());
+        }
+
+        List<String> semiFinalIngredients = Arrays.asList(ingredients.split(";"));
+        semiFinalIngredients = semiFinalIngredients.stream().map(i -> i.trim()).collect(Collectors.toList());
+
+        List<String> semiFinalInstructions = Arrays.asList(instructions.split(";"));
+        semiFinalInstructions = semiFinalInstructions.stream().map(i -> i.trim()).collect(Collectors.toList());
+
+        List<String> finalIngredients = semiFinalIngredients.stream().filter(i -> !i.equals("")).collect(Collectors.toList());
+        List<String> finalInstructions = semiFinalInstructions.stream().filter(i -> !i.equals("")).collect(Collectors.toList());
+
+        return recipeService.updateRecipe(id, title, finalIngredients, finalInstructions, finalImage);
 
     }
 
